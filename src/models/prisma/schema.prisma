@@ -1,0 +1,138 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+model Roles {
+    id         String   @id @db.VarChar(50)
+    name       String   @db.VarChar(10)
+    permission String   @db.VarChar(50)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @default(now())
+    user       Users[]  @relation("userRole")
+}
+
+model Users {
+    id       String     @id @db.VarChar(50)
+    fullName String     @db.VarChar(50)
+    roleId   String     @db.VarChar(30)
+    role     Roles      @relation("userRole", fields: roleId, references: id)
+    info     Infos[]    @relation("userInfo")
+    shop     Shops[]    @relation("userShop")
+    staff    Staffs[]   @relation("userStaff")
+    comment  Comments[] @relation("userComment")
+    Rates    Rates[]    @relation("userRate")
+}
+
+model Infos {
+    id        String   @id @db.VarChar(50)
+    userId    String   @db.VarChar(50)
+    user      Users    @relation("userInfo", fields: userId, references: id)
+    phone     Int
+    email     String   @db.VarChar(200)
+    address   String   @db.VarChar(200)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+    Bills     Bills[]  @relation("infoBill")
+}
+
+model Shops {
+    id        String     @id @db.VarChar(50)
+    userId    String     @db.VarChar(50)
+    user      Users      @relation("userShop", fields: userId, references: id)
+    brandName String     @db.VarChar(100)
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @default(now())
+    product   Products[] @relation("shopProduct")
+    staff     Staffs[]   @relation("shopStaff")
+}
+
+model Staffs {
+    id        String   @id @db.VarChar(50)
+    userId    String   @db.VarChar(50)
+    user      Users    @relation("userStaff", fields: userId, references: id)
+    shopId    String   @db.VarChar(50)
+    shop      Shops    @relation("shopStaff", fields: shopId, references: id)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+}
+
+model Products {
+    id        String     @id @db.VarChar(50)
+    shopId    String     @db.VarChar(50)
+    shop      Shops      @relation("shopProduct", fields: shopId, references: id)
+    name      String     @db.VarChar(100)
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @default(now())
+    size      Sizes[]    @relation("productSize")
+    comment   Comments[] @relation("productComment")
+    Rates     Rates[]    @relation("productRate")
+    Bills     Bills[]    @relation("productBill")
+}
+
+model Sizes {
+    id        String   @id @db.VarChar(50)
+    productId String   @db.VarChar(50)
+    product   Products @relation("productSize", fields: productId, references: id)
+    name      String   @db.VarChar(10)
+    price     Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+    color     Colors[] @relation("sizeColor")
+}
+
+model Colors {
+    id        String   @id @db.VarChar(50)
+    sizeId    String   @db.VarChar(50)
+    size      Sizes    @relation("sizeColor", fields: sizeId, references: id)
+    code      String   @db.VarChar(50)
+    name      String   @db.VarChar(50)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+    image     Images[] @relation("colorImage")
+}
+
+model Images {
+    id        String   @id @db.VarChar(50)
+    colorId   String   @db.VarChar(50)
+    color     Colors   @relation("colorImage", fields: colorId, references: id)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+}
+
+model Comments {
+    id        String   @id @db.VarChar(50)
+    userId    String   @db.VarChar(50)
+    user      Users    @relation("userComment", fields: userId, references: id)
+    productId String   @db.VarChar(50)
+    product   Products @relation("productComment", fields: productId, references: id)
+    content   Json?    @db.Json
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+}
+
+model Rates {
+    id        String   @id @db.VarChar(50)
+    userId    String   @db.VarChar(50)
+    user      Users    @relation("userRate", fields: userId, references: id)
+    productId String   @db.VarChar(50)
+    product   Products @relation("productRate", fields: productId, references: id)
+    number    Float
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+}
+
+model Bills {
+    id        String   @id @db.VarChar(50)
+    infoId    String   @db.VarChar(50)
+    info      Infos    @relation("infoBill", fields: infoId, references: id)
+    productId String   @db.VarChar(50)
+    product   Products @relation("productBill", fields: productId, references: id)
+    number    Float
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
+}
