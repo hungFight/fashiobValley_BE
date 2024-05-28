@@ -17,15 +17,17 @@ model Roles {
 }
 
 model Users {
-    id       String     @id @db.VarChar(50)
-    fullName String     @db.VarChar(50)
-    roleId   String     @db.VarChar(30)
-    role     Roles      @relation("userRole", fields: roleId, references: id)
-    info     Infos[]    @relation("userInfo")
-    shop     Shops[]    @relation("userShop")
-    staff    Staffs[]   @relation("userStaff")
-    comment  Comments[] @relation("userComment")
-    Rates    Rates[]    @relation("userRate")
+    id            String     @id @db.VarChar(50)
+    fullName      String     @db.VarChar(50)
+    password      String     @db.VarChar(100)
+    extraPassword String     @db.VarChar(100)
+    roleId        String     @db.VarChar(30)
+    role          Roles      @relation("userRole", fields: roleId, references: id)
+    info          Infos[]    @relation("userInfo")
+    shop          Shops[]    @relation("userShop")
+    staff         Staffs[]   @relation("userStaff")
+    comment       Comments[] @relation("userComment")
+    Rates         Rates[]    @relation("userRate")
 }
 
 model Infos {
@@ -33,7 +35,7 @@ model Infos {
     userId    String   @db.VarChar(50)
     user      Users    @relation("userInfo", fields: userId, references: id)
     phone     Int
-    email     String   @db.VarChar(200)
+    email     String   @db.VarChar(100)
     address   String   @db.VarChar(200)
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now())
@@ -135,4 +137,11 @@ model Bills {
     number    Float
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now())
+}
+
+model OTP {
+    id         String   @id @db.VarChar(50)
+    code       String   @db.VarChar(100)
+    phoneEmail String   @db.VarChar(100)
+    createdAt  DateTime @default(now())
 }

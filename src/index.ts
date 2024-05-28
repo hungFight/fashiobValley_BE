@@ -8,16 +8,14 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
+import router from './routes';
+import { initRedis } from './connectDatabase/connect.Redis';
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT ?? 3001;
 const httpServer = require('http').createServer(app);
-const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    csrfPrevention: true,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-});
+
 app.use(cookieParser(process.env.SECRET));
 app.use(
     cors({
@@ -27,19 +25,11 @@ app.use(
 );
 app.use(morgan('combined'));
 app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 
-app.use('/', (req: any, res: any) => {
+app.get('/', (req: any, res: any) => {
     res.send('Hello world!');
 });
-async function listen() {
-    await server.start();
-    app.use(
-        expressMiddleware(server, {
-            context: async ({ req, res }) => ({ req, res }),
-        }),
-    );
-    await new Promise((resolve, reject) => httpServer.listen({ port }, resolve));
-    console.log(`🚀 Server ready at http://localhost:${port}`);
-}
-listen();
+initRedis();
+router(app);
+httpServer.listen(port, () => console.log(`🚀 Server ready at http://localhost:${port}`));
