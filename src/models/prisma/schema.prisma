@@ -139,9 +139,3 @@ model Bills {
     updatedAt DateTime @default(now())
 }
 
-model OTP {
-    id         String   @id @db.VarChar(50)
-    code       String   @db.VarChar(100)
-    phoneEmail String   @db.VarChar(100)
-    createdAt  DateTime @default(now())
-}
