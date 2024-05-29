@@ -29,35 +29,24 @@ class VerifyController {
                     return client.messages
                         .create({ body: `FashionValley. Here is your code: ${otp}`, from: TWILIO_PHONE_NUMBER, to: phoneCode })
                         .then((data) => {
-                            return getRedis().set(key, otpHashed, (err) => {
+                            getRedis().set(key, otpHashed, (err) => {
                                 if (err) {
                                     console.error('Redis set error:', err);
                                     return res.status(500).json({ error: 'Redis set error', details: err });
                                 }
-                                // return getRedis().expire(key, 70, (expireErr) => {
-                                //     if (expireErr) {
-                                //         console.error('Redis expire error:', expireErr);
-                                //         return res.status(500).json({ error: 'Redis expire error', details: expireErr });
-                                //     }
-                                // });
-                                // res.cookie(
-                                //     'asdf_',
-                                //     { phoneEmail: phoneCode, id: codeId },
-                                //     {
-                                //         path: '/',
-                                //         secure: false, // Set to true if you're using HTTPS
-                                //         sameSite: 'strict', // Options: 'lax', 'strict', 'none'
-                                //         expires: new Date(new Date().getTime() + 60 * 1000), // 1m
-                                //         signed: true, // Sign the cookie
-                                //     },
-                                // );
+                                getRedis().expire(key, 70, (expireErr) => {
+                                    if (expireErr) {
+                                        console.error('Redis expire error:', expireErr);
+                                        return res.status(500).json({ error: 'Redis expire error', details: expireErr });
+                                    }
+                                });
                                 res.cookie('asdf_', JSON.stringify({ phoneEmail: phoneCode, id: codeId }), {
                                     path: '/',
                                     secure: false, // Set to true if you're using HTTPS
                                     sameSite: 'strict', // Options: 'lax', 'strict', 'none'
-                                    expires: new Date(new Date().getTime() + 60 * 86409000), // 30 days
+                                    expires: new Date(new Date().getTime() + 32 * 60 * 1000), // 1m
                                 });
-                                return res.status(200).json({ phone: phoneCode, id: codeId });
+                                return res.status(200).json({ phoneEmail: phoneCode, id: codeId });
                             });
                         })
                         .catch((err) => res.status(500).json(err));
@@ -74,20 +63,30 @@ class VerifyController {
             const id = req.body.id;
             const code = req.body.code;
             const macIP = getMAC();
-            console.error('Redis set error:', req.body, macIP, Validation.validPhoneNumber(phoneEmail));
-
-            if (!Validation.validPhoneNumber(phoneEmail) || !Validation.validOTP(code) || !Validation.validUUID(id) || !isMAC(macIP)) throw new NotFound('verifyOTPBySMS', 'Empty or Invalid!');
+            const status: 'checkValid' | undefined = req.body.status;
+            if (!Validation.validPhoneNumber(phoneEmail) || (!Validation.validOTP(code) && status !== 'checkValid') || !Validation.validUUID(id) || !isMAC(macIP))
+                throw new NotFound('verifyOTPBySMS', 'Empty or Invalid!');
             const key = `OTP_${phoneEmail}_${id}_${macIP}`;
-            return getRedis().get(key, (err, data) => {
+            getRedis().get(key, (err, data) => {
                 if (err) throw new NotFound('verifyOTP', 'Code is empty!', err);
-                console.log(data);
                 if (data) {
-                    const checkOTP = bcrypt.compareSync(code, data);
-                    if (checkOTP) {
-                        // getRedis().del(key, (err) => {
-                        //     if (err) throw new NotFound('verifyOTPBy', 'Deleted failed!');
-                        // });
-                        return res.status(200).json(true);
+                    if (status === 'checkValid') {
+                        if (data === code) return res.status(200).json(true);
+                        throw new NotFound('verifyOTP', 'Invalid code!', err);
+                    } else {
+                        const checkOTP = bcrypt.compareSync(code, data);
+                        if (checkOTP) {
+                            const uniqueCode = keyV4();
+                            if (Validation.validUUID(uniqueCode)) {
+                                getRedis().set(key, uniqueCode, (err) => {
+                                    if (err) throw new NotFound('verifyOTP', 'set failed!', err);
+                                    getRedis().expire(key, 30 * 60, (err) => {
+                                        if (err) throw new NotFound('verifyOTP', 'set expiration failed!', err);
+                                    });
+                                });
+                                return res.status(200).json(uniqueCode);
+                            }
+                        }
                     }
                     return res.status(404).json('Invalid!');
                 }
