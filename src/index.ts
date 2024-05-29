@@ -10,6 +10,7 @@ import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import router from './routes';
 import { initRedis } from './connectDatabase/connect.Redis';
+import errorHandler from './actionsHandling/errorHandles';
 require('dotenv').config();
 
 const app = express();
@@ -32,4 +33,5 @@ app.get('/', (req: any, res: any) => {
 });
 initRedis();
 router(app);
+app.use(errorHandler);
 httpServer.listen(port, () => console.log(`🚀 Server ready at http://localhost:${port}`));
