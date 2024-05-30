@@ -10,12 +10,11 @@ class UserController {
             const account = req.body.account;
             const userName = req.body.userName;
             const password = req.body.password;
-            const phone = req.body.phone;
             const subPassword = req.body.subPassword;
             const macIP = getMAC();
-            const validAc: { phoneEmail: string; id: string } = req.cookies.asdf_;
+            const validAc = req.cookies.asdf_;
             if ((Validation.validPhoneNumber(account) || Validation.validEmail(account)) && userName && password && isMAC(macIP)) {
-                const data = await userService.register(userName, password, phone, validAc, macIP, subPassword);
+                const data = await userService.register(res, userName, password, account, validAc ? JSON.parse(validAc) : validAc, macIP, subPassword);
                 return res.status(200).json(data);
             }
             throw new NotFound('Register', 'Invalid');

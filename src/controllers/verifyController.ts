@@ -99,7 +99,7 @@ class VerifyController {
                                 console.error('Redis set error:', err);
                                 return res.status(500).json({ error: 'Redis set error', details: err });
                             }
-                            getRedis().expire(key, 70, (expireErr) => {
+                            getRedis().expire(key, 120, (expireErr) => {
                                 if (expireErr) {
                                     console.error('Redis expire error:', expireErr);
                                     return res.status(500).json({ error: 'Redis expire error', details: expireErr });
@@ -109,7 +109,7 @@ class VerifyController {
                                 path: '/',
                                 secure: false, // Set to true if you're using HTTPS
                                 sameSite: 'strict', // Options: 'lax', 'strict', 'none'
-                                expires: new Date(new Date().getTime() + 32 * 60 * 1000), // 32m
+                                expires: new Date(new Date().getTime() + 28 * 60 * 1000), // 32m
                             });
                             if (oldData) {
                                 const oldKey = `OTP_${oldData.phoneEmail}_${oldData.id}_${macIP}`;
