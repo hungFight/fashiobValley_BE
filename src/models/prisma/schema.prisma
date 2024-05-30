@@ -7,22 +7,30 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Roles {
+model Permissions {
     id         String   @id @db.VarChar(50)
-    name       String   @db.VarChar(10)
-    permission String   @db.VarChar(50)
+    roleId     String   @db.VarChar(30)
+    role       Roles    @relation("rolePermission", fields: roleId, references: id)
+    permission String   @unique @db.VarChar(50)
     createdAt  DateTime @default(now())
     updatedAt  DateTime @default(now())
-    user       Users[]  @relation("userRole")
+}
+
+model Roles {
+    id         String        @id @db.VarChar(50)
+    name       String        @db.VarChar(10)
+    createdAt  DateTime      @default(now())
+    updatedAt  DateTime      @default(now())
+    shop       Shops[]       @relation("roleShop")
+    permission Permissions[] @relation("rolePermission")
 }
 
 model Users {
     id            String     @id @db.VarChar(50)
     fullName      String     @db.VarChar(50)
+    account       String     @unique @db.VarChar(320)
     password      String     @db.VarChar(100)
-    extraPassword String     @db.VarChar(100)
-    roleId        String     @db.VarChar(30)
-    role          Roles      @relation("userRole", fields: roleId, references: id)
+    extraPassword String?    @db.VarChar(100)
     info          Infos[]    @relation("userInfo")
     shop          Shops[]    @relation("userShop")
     staff         Staffs[]   @relation("userStaff")
@@ -34,8 +42,8 @@ model Infos {
     id        String   @id @db.VarChar(50)
     userId    String   @db.VarChar(50)
     user      Users    @relation("userInfo", fields: userId, references: id)
-    phone     Int
-    email     String   @db.VarChar(100)
+    phone     String   @db.VarChar(20)
+    email     String   @db.VarChar(320)
     address   String   @db.VarChar(200)
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now())
@@ -46,6 +54,8 @@ model Shops {
     id        String     @id @db.VarChar(50)
     userId    String     @db.VarChar(50)
     user      Users      @relation("userShop", fields: userId, references: id)
+    roleId    String     @db.VarChar(30)
+    role      Roles      @relation("roleShop", fields: roleId, references: id)
     brandName String     @db.VarChar(100)
     createdAt DateTime   @default(now())
     updatedAt DateTime   @default(now())
@@ -138,4 +148,3 @@ model Bills {
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now())
 }
-

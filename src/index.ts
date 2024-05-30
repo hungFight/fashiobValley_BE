@@ -11,12 +11,13 @@ import bodyParser from 'body-parser';
 import router from './routes';
 import { initRedis } from './connectDatabase/connect.Redis';
 import errorHandler from './actionsHandling/errorHandles';
+import { PrismaClient } from '@prisma/client';
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT ?? 3001;
 const httpServer = require('http').createServer(app);
-
+export const prisma = new PrismaClient();
 app.use(cookieParser(process.env.SECRET));
 app.use(
     cors({
@@ -28,9 +29,6 @@ app.use(morgan('combined'));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 
-app.get('/', (req: any, res: any) => {
-    res.send('Hello world!');
-});
 initRedis();
 router(app);
 app.use(errorHandler);
