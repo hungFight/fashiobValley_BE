@@ -31,6 +31,22 @@ class UserController {
             next(error);
         }
     };
+    public login = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+            const account = req.body.account,
+                password = req.body.password,
+                IP_USER = req.socket.remoteAddress ?? req.ip,
+                IP_MAC = getMAC(),
+                userAgent = req.headers['user-agent'] ?? '';
+            if ((Validation.validPhoneNumber(account) || Validation.validEmail(account)) && Validation.validLength(password, 6, 50) && IP_USER) {
+                const data = await userService.login(res, IP_USER, IP_MAC, userAgent, password, account);
+                return res.status(200).json(data);
+            }
+            throw new NotFound('Register', 'Invalid');
+        } catch (error) {
+            next(error);
+        }
+    };
     public resetPassword = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
             const account = req.body.account;

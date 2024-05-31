@@ -36,6 +36,7 @@ model Users {
     staff         Staffs[]   @relation("userStaff")
     comment       Comments[] @relation("userComment")
     Rates         Rates[]    @relation("userRate")
+    createdAt     DateTime   @default(now())
 }
 
 model Infos {
