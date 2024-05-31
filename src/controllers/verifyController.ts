@@ -31,7 +31,7 @@ class VerifyController {
                     console.log(key, macIP);
                     const date = new Date();
                     return client.messages
-                        .create({ body: `FashionValley. Here is your code: ${otp}`, from: TWILIO_PHONE_NUMBER, to: phoneCode })
+                        .create({ body: `FashionValley. Here is your code: ${otp} and expired in 1 minute`, from: TWILIO_PHONE_NUMBER, to: phoneCode })
                         .then((data) => {
                             getRedis().set(key, JSON.stringify({ key: otpHashed, createdAt: date }), (err) => {
                                 if (err) {
@@ -87,8 +87,8 @@ class VerifyController {
                 const mailOptions = {
                     from: MAILER_USER,
                     to: mailCode,
-                    subject: 'FashionValley',
-                    text: `FashionValley. Here is your code: ${otp}`,
+                    subject: `FashionValley code: ${otp} and expired in 1 minute`,
+                    text: `FashionValley. Here is your code: ${otp} and expired in 1 minute`,
                 };
                 return transporter.sendMail(mailOptions, function (error: any, info: { response: string }) {
                     if (error) {
@@ -109,7 +109,7 @@ class VerifyController {
                                 path: '/',
                                 secure: false, // Set to true if you're using HTTPS
                                 sameSite: 'strict', // Options: 'lax', 'strict', 'none'
-                                expires: new Date(new Date().getTime() + 28 * 60 * 1000), // 32m
+                                expires: new Date(new Date().getTime() + 2 * 60 * 1000), // 32m
                             });
                             if (oldData) {
                                 const oldKey = `OTP_${oldData.phoneEmail}_${oldData.id}_${macIP}`;
@@ -155,9 +155,16 @@ class VerifyController {
                             if (Validation.validUUID(uniqueCode)) {
                                 getRedis().set(key, JSON.stringify({ key: uniqueCode, createdAt: new Date() }), (err) => {
                                     if (err) return new NotFound('verifyOTP', 'set failed!', err);
+
                                     getRedis().expire(key, 30 * 60, (err) => {
                                         if (err) return new NotFound('verifyOTP', 'set expiration failed!', err);
                                     });
+                                });
+                                res.cookie('asdf_', JSON.stringify({ phoneEmail: phoneEmail, id: id, createdAt: new Date(), key: uniqueCode }), {
+                                    path: '/',
+                                    secure: false, // Set to true if you're using HTTPS
+                                    sameSite: 'strict', // Options: 'lax', 'strict', 'none'
+                                    expires: new Date(new Date().getTime() + 28 * 60 * 1000), // 32m
                                 });
                                 return res.status(200).json(uniqueCode);
                             }

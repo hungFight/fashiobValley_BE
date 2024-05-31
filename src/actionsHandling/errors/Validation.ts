@@ -8,9 +8,6 @@ class Validation extends Error {
     public validOTP(value: string): boolean {
         return value.length === 6;
     }
-    public validUserName(value: string, min: number, max: number): boolean {
-        return value.length > 6 && value.length < max;
-    }
     public validPhoneNumber(value: string): boolean {
         const phoneNumberRegex = /^(\+?\d{1,3})?[-.\s]?(\(?\d{1,4}\)?)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
         return phoneNumberRegex.test(value);
